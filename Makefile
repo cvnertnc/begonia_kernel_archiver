@@ -743,9 +743,9 @@ KBUILD_CFLAGS   += -mllvm -unroll-threshold=1200
 endif
 
 ifdef CONFIG_INLINE_OPTIMIZATION
-KBUILD_CFLAGS	+= -mllvm -inline-threshold=2000
-KBUILD_CFLAGS	+= -mllvm -inlinehint-threshold=3000
-KBUILD_CFLAGS   += -mllvm -unroll-threshold=1200
+KBUILD_CFLAGS  += -mllvm -inline-threshold=1300
+KBUILD_CFLAGS  += -mllvm -inlinehint-threshold=2000
+KBUILD_CFLAGS  += -mllvm -unroll-threshold=900
 KBUILD_LDFLAGS  += --plugin-opt=-import-instr-limit=40
 endif
 
