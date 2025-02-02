@@ -25,52 +25,56 @@ jobs:
           git remote add upstream https://github.com/Saikrishna1504/kernel_xiaomi_mt6785.git || true
           git fetch upstream vic
 
-      - name: Check for updates and sync branch
+      - name: Sync Power and Update branches
         run: |
           set -e
           new_commit=$(git rev-parse upstream/vic)
           echo "Latest upstream commit: $new_commit"
 
+          # Power Branch: Upstream ile senkronize et (tüm commitler burada)
           if git rev-parse --verify power >/dev/null 2>&1; then
-              echo "Local power branch exists."
               git checkout power
+              current_power_commit=$(git rev-parse HEAD)
           else
-              echo "Local power branch does not exist. Creating it."
               git checkout -b power upstream/vic
+              current_power_commit=""
           fi
-          
-          if [ -f update.md ]; then
-              recorded_commit=$(grep -m1 "^Commit:" update.md | awk '{print $2}')
-              echo "Recorded commit in update.md: $recorded_commit"
+
+          if [ "$current_power_commit" != "$new_commit" ]; then
+              echo "Updating power branch..."
+              git reset --hard upstream/vic
+              # Workflow dosyalarını commit dışı bırak
+              git rm --cached .github/workflows/*.yml 2>/dev/null || true
+              git add -A
+              git commit -m "Sync power with upstream" || echo "No changes"
+              git push origin power --force
           else
-              echo "update.md does not exist. It will be created."
+              echo "Power branch zaten güncel."
+          fi
+
+          # Update Branch: Sadece update-power.md'yi tut
+          if git rev-parse --verify update >/dev/null 2>&1; then
+              git checkout update
+          else
+              git checkout -b update upstream/vic
+          fi
+
+          if [ -f update-power.md ]; then
+              recorded_commit=$(grep -m1 "^Commit:" update-power.md | awk '{print $2}')
+          else
               recorded_commit=""
           fi
-          
-          if [ "$recorded_commit" = "$new_commit" ]; then
-              echo "No new update. Exiting."
-              exit 0
-          else
-              echo "New update detected. Updating branch."
-              git reset --hard upstream/vic
-              
-              # Workflow dosyalarını commit dışı bırak
-              if [ -f .github/workflows/build-artifacts.yml ]; then
-                  git rm --cached .github/workflows/build-artifacts.yml || true
-                  git update-index --skip-worktree .github/workflows/build-artifacts.yml || true
-              fi
-              if [ -f .github/workflows/release-artifacts.yml ]; then
-                  git rm --cached .github/workflows/release-artifacts.yml || true
-                  git update-index --skip-worktree .github/workflows/release-artifacts.yml || true
-              fi
-              
+
+          if [ "$recorded_commit" != "$new_commit" ]; then
+              echo "Update branch'e yeni log ekleniyor..."
               current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-              echo "Commit: $new_commit" > update.md
-              echo "Checked at: $current_time" >> update.md
-              
-              git add update.md
-              git commit -m "Update power: new commit $new_commit at $current_time"
-              git push origin power --force
+              echo "Commit: $new_commit" > update-power.md
+              echo "Checked at: $current_time" >> update-power.md
+              git add update-power.md
+              git commit -m "Update log: $new_commit"
+              git push origin update --force
+          else
+              echo "Update branch zaten güncel."
           fi
 
       - name: Clear older runs

@@ -25,52 +25,56 @@ jobs:
           git remote add upstream https://github.com/xiaomi-begonia-dev/android_kernel_xiaomi_mt6785.git || true
           git fetch upstream fifteen
 
-      - name: Check for updates and sync branch
+      - name: Sync Astera and Update branches
         run: |
           set -e
           new_commit=$(git rev-parse upstream/fifteen)
           echo "Latest upstream commit: $new_commit"
 
+          # Astera Branch: Upstream ile senkronize et (tüm commitler burada)
           if git rev-parse --verify astera >/dev/null 2>&1; then
-              echo "Local astera branch exists."
               git checkout astera
+              current_astera_commit=$(git rev-parse HEAD)
           else
-              echo "Local astera branch does not exist. Creating it."
               git checkout -b astera upstream/fifteen
+              current_astera_commit=""
           fi
-          
-          if [ -f update.md ]; then
-              recorded_commit=$(grep -m1 "^Commit:" update.md | awk '{print $2}')
-              echo "Recorded commit in update.md: $recorded_commit"
+
+          if [ "$current_astera_commit" != "$new_commit" ]; then
+              echo "Updating astera branch..."
+              git reset --hard upstream/fifteen
+              # Workflow dosyalarını commit dışı bırak
+              git rm --cached .github/workflows/*.yml 2>/dev/null || true
+              git add -A
+              git commit -m "Sync astera with upstream" || echo "No changes"
+              git push origin astera --force
           else
-              echo "update.md does not exist. It will be created."
+              echo "Astera branch zaten güncel."
+          fi
+
+          # Update Branch: Sadece update-astera.md'yi tut
+          if git rev-parse --verify update >/dev/null 2>&1; then
+              git checkout update
+          else
+              git checkout -b update upstream/fifteen
+          fi
+
+          if [ -f update-astera.md ]; then
+              recorded_commit=$(grep -m1 "^Commit:" update-astera.md | awk '{print $2}')
+          else
               recorded_commit=""
           fi
-          
-          if [ "$recorded_commit" = "$new_commit" ]; then
-              echo "No new update. Exiting."
-              exit 0
-          else
-              echo "New update detected. Updating branch."
-              git reset --hard upstream/fifteen
-              
-              # Workflow dosyalarını commit dışı bırak
-              if [ -f .github/workflows/build-artifacts.yml ]; then
-                  git rm --cached .github/workflows/build-artifacts.yml || true
-                  git update-index --skip-worktree .github/workflows/build-artifacts.yml || true
-              fi
-              if [ -f .github/workflows/release-artifacts.yml ]; then
-                  git rm --cached .github/workflows/release-artifacts.yml || true
-                  git update-index --skip-worktree .github/workflows/release-artifacts.yml || true
-              fi
-              
+
+          if [ "$recorded_commit" != "$new_commit" ]; then
+              echo "Update branch'e yeni log ekleniyor..."
               current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-              echo "Commit: $new_commit" > update.md
-              echo "Checked at: $current_time" >> update.md
-              
-              git add update.md
-              git commit -m "Update astera: new commit $new_commit at $current_time"
-              git push origin astera --force
+              echo "Commit: $new_commit" > update-astera.md
+              echo "Checked at: $current_time" >> update-astera.md
+              git add update-astera.md
+              git commit -m "Update log: $new_commit"
+              git push origin update --force
+          else
+              echo "Update branch zaten güncel."
           fi
 
       - name: Clear older runs
