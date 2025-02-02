@@ -31,12 +31,12 @@ jobs:
           new_commit=$(git rev-parse upstream/susfs)
           echo "Latest upstream commit: $new_commit"
 
-          if git rev-parse --verify susfs >/dev/null 2>&1; then
-              echo "Local susfs branch exists."
-              git checkout susfs
+          if git rev-parse --verify powerfork >/dev/null 2>&1; then
+              echo "Local powerfork branch exists."
+              git checkout powerfork
           else
-              echo "Local susfs branch does not exist. Creating it."
-              git checkout -b susfs upstream/susfs
+              echo "Local powerfork branch does not exist. Creating it."
+              git checkout -b powerfork upstream/susfs
           fi
           
           if [ -f update.md ]; then
@@ -54,7 +54,7 @@ jobs:
               echo "New update detected. Updating branch."
               git reset --hard upstream/susfs
               
-              # Workflow dosyalarını commit dışı bırak: Dosya varsa işlemleri uygula
+              # Workflow dosyalarını commit dışı bırak
               if [ -f .github/workflows/build-artifacts.yml ]; then
                   git rm --cached .github/workflows/build-artifacts.yml || true
                   git update-index --skip-worktree .github/workflows/build-artifacts.yml || true
@@ -69,8 +69,8 @@ jobs:
               echo "Checked at: $current_time" >> update.md
               
               git add update.md
-              git commit -m "Update susfs: new commit $new_commit at $current_time"
-              git push origin susfs --force
+              git commit -m "Update powerfork: new commit $new_commit at $current_time"
+              git push origin powerfork --force
           fi
 
       - name: Clear older runs
