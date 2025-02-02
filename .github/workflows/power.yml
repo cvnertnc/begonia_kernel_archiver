@@ -31,12 +31,12 @@ jobs:
           new_commit=$(git rev-parse upstream/vic)
           echo "Latest upstream commit: $new_commit"
 
-          if git rev-parse --verify vic >/dev/null 2>&1; then
-              echo "Local vic branch exists."
-              git checkout vic
+          if git rev-parse --verify power >/dev/null 2>&1; then
+              echo "Local power branch exists."
+              git checkout power
           else
-              echo "Local vic branch does not exist. Creating it."
-              git checkout -b vic upstream/vic
+              echo "Local power branch does not exist. Creating it."
+              git checkout -b power upstream/vic
           fi
           
           if [ -f update.md ]; then
@@ -54,13 +54,23 @@ jobs:
               echo "New update detected. Updating branch."
               git reset --hard upstream/vic
               
+              # Workflow dosyalarını commit dışı bırak
+              if [ -f .github/workflows/build-artifacts.yml ]; then
+                  git rm --cached .github/workflows/build-artifacts.yml || true
+                  git update-index --skip-worktree .github/workflows/build-artifacts.yml || true
+              fi
+              if [ -f .github/workflows/release-artifacts.yml ]; then
+                  git rm --cached .github/workflows/release-artifacts.yml || true
+                  git update-index --skip-worktree .github/workflows/release-artifacts.yml || true
+              fi
+              
               current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
               echo "Commit: $new_commit" > update.md
               echo "Checked at: $current_time" >> update.md
               
               git add update.md
-              git commit -m "Update vic: new commit $new_commit at $current_time"
-              git push origin vic --force
+              git commit -m "Update power: new commit $new_commit at $current_time"
+              git push origin power --force
           fi
 
       - name: Clear older runs
