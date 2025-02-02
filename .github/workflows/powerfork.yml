@@ -1,4 +1,4 @@
-name: Sync susfs branch daily
+name: Sync PowerFork branch daily
 
 on:
   schedule:

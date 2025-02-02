@@ -1,4 +1,4 @@
-name: Sync vic branch daily
+name: Sync Power branch daily
 
 on:
   schedule:

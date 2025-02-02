@@ -1,4 +1,4 @@
-name: Sync fifteen branch daily
+name: Sync Astera branch daily
 
 on:
   schedule:

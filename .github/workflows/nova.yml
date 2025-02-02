@@ -1,4 +1,4 @@
-name: Sync fifteen branch daily
+name: Sync Nova branch daily
 
 on:
   schedule:
