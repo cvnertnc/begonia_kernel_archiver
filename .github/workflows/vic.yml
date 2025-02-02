@@ -1,0 +1,70 @@
+name: Sync vic branch daily
+
+on:
+  schedule:
+    - cron: '0 16 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Add GitLab remote and fetch vic branch
+        run: |
+          git remote add upstream https://github.com/Saikrishna1504/kernel_xiaomi_mt6785.git || true
+          git fetch upstream vic
+
+      - name: Check for updates and sync branch
+        run: |
+          set -e
+          new_commit=$(git rev-parse upstream/vic)
+          echo "Latest upstream commit: $new_commit"
+
+          if git rev-parse --verify vic >/dev/null 2>&1; then
+              echo "Local vic branch exists."
+              git checkout vic
+          else
+              echo "Local vic branch does not exist. Creating it."
+              git checkout -b vic upstream/vic
+          fi
+          
+          if [ -f update.md ]; then
+              recorded_commit=$(grep -m1 "^Commit:" update.md | awk '{print $2}')
+              echo "Recorded commit in update.md: $recorded_commit"
+          else
+              echo "update.md does not exist. It will be created."
+              recorded_commit=""
+          fi
+          
+          if [ "$recorded_commit" = "$new_commit" ]; then
+              echo "No new update. Exiting."
+              exit 0
+          else
+              echo "New update detected. Updating branch."
+              git reset --hard upstream/vic
+              
+              current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+              echo "Commit: $new_commit" > update.md
+              echo "Checked at: $current_time" >> update.md
+              
+              git add update.md
+              git commit -m "Update vic: new commit $new_commit at $current_time"
+              git push origin vic --force
+          fi
+
+      - name: Clear older runs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run list -L400 --json databaseId -q '.[].databaseId' | tail -n+5 | xargs -IID gh api "repos/$GITHUB_REPOSITORY/actions/runs/ID" -X DELETE || :
