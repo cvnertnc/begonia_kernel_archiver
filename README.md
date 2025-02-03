@@ -1,4 +1,5 @@
 # Begonia Kernel Archiver
+[![CI](https://github.com/cvnertnc/begonia_kernel_archiver/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/cvnertnc/begonia_kernel_archiver/actions/workflows/ci.yml)
 
 This repository contains the kernel source code for the Xiaomi Redmi Note 8 Pro (Begonia) device. It is set up to automatically monitor kernel commits using GitHub Actions workflows and update the `update.md` file with the latest commit ID on a daily basis.
 
