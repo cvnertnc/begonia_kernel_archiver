@@ -36,7 +36,7 @@ jobs:
           new_commit=$(git rev-parse upstream/vic)
           echo "Latest upstream commit: $new_commit"
 
-          # Power Branch: Upstream ile senkronize et (tüm commitler burada)
+          # Power Branch: Upstream ile senkronize et
           if git rev-parse --verify power >/dev/null 2>&1; then
               git checkout power
               current_power_commit=$(git rev-parse HEAD)
@@ -48,39 +48,30 @@ jobs:
           if [ "$current_power_commit" != "$new_commit" ]; then
               echo "Updating power branch..."
               git reset --hard upstream/vic
-              # Workflow dosyalarını commit dışı bırak
               git rm --cached .github/workflows/*.yml 2>/dev/null || true
               git add -A
               git commit -m "Sync power with upstream" || echo "No changes"
               git push origin power --force
-          else
-              echo "Power branch zaten güncel."
           fi
 
-          # Update Branch: Sadece update-power.md'yi tut
+          # Update Branch: SADECE update-power.md
           if git rev-parse --verify update >/dev/null 2>&1; then
               git checkout update
+              # Mevcut dosyaları temizle (update-power.md hariç)
+              git ls-files | grep -v 'update-power.md' | xargs git rm -rfq 2>/dev/null || true
           else
-              git checkout -b update upstream/vic
+              git checkout --orphan update
+              git rm -rf .  # Orphan branch'deki tüm dosyaları sil
           fi
 
-          if [ -f update-power.md ]; then
-              recorded_commit=$(grep -m1 "^Commit:" update-power.md | awk '{print $2}')
-          else
-              recorded_commit=""
-          fi
-
-          if [ "$recorded_commit" != "$new_commit" ]; then
-              echo "Update branch'e yeni log ekleniyor..."
-              current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-              echo "Commit: $new_commit" > update-power.md
-              echo "Checked at: $current_time" >> update-power.md
-              git add update-power.md
-              git commit -m "Update log: $new_commit"
-              git push origin update --force
-          else
-              echo "Update branch zaten güncel."
-          fi
+          # Yeni update-power.md oluştur/güncelle
+          current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "Commit: $new_commit" > update-power.md
+          echo "Checked at: $current_time" >> update-power.md
+          
+          git add update-power.md
+          git commit -m "Update log: $new_commit"
+          git push origin update --force
 
       - name: Clear older runs
         env:

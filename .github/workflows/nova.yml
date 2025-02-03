@@ -36,7 +36,7 @@ jobs:
           new_commit=$(git rev-parse upstream/fifteen)
           echo "Latest upstream commit: $new_commit"
 
-          # Nova Branch: Upstream ile senkronize et (tüm commitler burada)
+          # Nova Branch: Upstream ile senkronize et
           if git rev-parse --verify nova >/dev/null 2>&1; then
               git checkout nova
               current_nova_commit=$(git rev-parse HEAD)
@@ -48,39 +48,30 @@ jobs:
           if [ "$current_nova_commit" != "$new_commit" ]; then
               echo "Updating nova branch..."
               git reset --hard upstream/fifteen
-              # Workflow dosyalarını commit dışı bırak
               git rm --cached .github/workflows/*.yml 2>/dev/null || true
               git add -A
               git commit -m "Sync nova with upstream" || echo "No changes"
               git push origin nova --force
-          else
-              echo "Nova branch zaten güncel."
           fi
 
-          # Update Branch: Sadece update-nova.md'yi tut
+          # Update Branch: SADECE update-nova.md
           if git rev-parse --verify update >/dev/null 2>&1; then
               git checkout update
+              # Tüm dosyaları sil (update-nova.md hariç)
+              git ls-files | grep -v 'update-nova.md' | xargs git rm -rfq 2>/dev/null || true
           else
-              git checkout -b update upstream/fifteen
+              git checkout --orphan update
+              git rm -rf .  # Orphan branch'deki tüm dosyaları sil
           fi
 
-          if [ -f update-nova.md ]; then
-              recorded_commit=$(grep -m1 "^Commit:" update-nova.md | awk '{print $2}')
-          else
-              recorded_commit=""
-          fi
-
-          if [ "$recorded_commit" != "$new_commit" ]; then
-              echo "Update branch'e yeni log ekleniyor..."
-              current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-              echo "Commit: $new_commit" > update-nova.md
-              echo "Checked at: $current_time" >> update-nova.md
-              git add update-nova.md
-              git commit -m "Update log: $new_commit"
-              git push origin update --force
-          else
-              echo "Update branch zaten güncel."
-          fi
+          # Yeni update-nova.md oluştur/güncelle
+          current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "Commit: $new_commit" > update-nova.md
+          echo "Checked at: $current_time" >> update-nova.md
+          
+          git add update-nova.md
+          git commit -m "Update log: $new_commit"
+          git push origin update --force
 
       - name: Clear older runs
         env:
