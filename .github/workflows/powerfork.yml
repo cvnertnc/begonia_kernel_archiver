@@ -7,7 +7,6 @@ on:
         type: boolean
         required: false
         default: true
-
   workflow_dispatch:
 
 jobs:
@@ -30,13 +29,12 @@ jobs:
           git remote add upstream https://github.com/wodanesdag/android_kernel_xiaomi_mt6785.git || true
           git fetch upstream susfs
 
-      - name: Sync PowerFork and Update branches
+      - name: Sync PowerFork branch
         run: |
           set -e
           new_commit=$(git rev-parse upstream/susfs)
           echo "Latest upstream commit: $new_commit"
 
-          # PowerFork Branch: Upstream ile senkronize et
           if git rev-parse --verify powerfork >/dev/null 2>&1; then
               git checkout powerfork
               current_powerfork_commit=$(git rev-parse HEAD)
@@ -52,26 +50,9 @@ jobs:
               git add -A
               git commit -m "Sync powerfork with upstream" || echo "No changes"
               git push origin powerfork --force
-          fi
-
-          # Update Branch: SADECE update-*.md dosyaları
-          if git rev-parse --verify update >/dev/null 2>&1; then
-              git checkout update
-              # Mevcut dosyaları temizle (update-*.md hariç)
-              git ls-files | grep -v 'update-.*\.md' | xargs git rm -rfq 2>/dev/null || true
           else
-              git checkout --orphan update
-              git rm -rf .  # Orphan branch'deki tüm dosyaları sil
+              echo "PowerFork branch zaten güncel."
           fi
-
-          # Yeni update-powerfork.md oluştur/güncelle
-          current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          echo "Commit: $new_commit" > update-powerfork.md
-          echo "Checked at: $current_time" >> update-powerfork.md
-          
-          git add update-powerfork.md
-          git commit -m "Update log: $new_commit"
-          git push origin update --force
 
       - name: Clear older runs
         env:
