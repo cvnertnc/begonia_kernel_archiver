@@ -38,9 +38,3 @@ jobs:
     needs: check
     uses: ./.github/workflows/power.yml
     secrets: inherit
-
-  run_powerfork:
-    permissions: write-all
-    needs: check
-    uses: ./.github/workflows/powerfork.yml
-    secrets: inherit
