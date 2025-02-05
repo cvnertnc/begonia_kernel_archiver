@@ -5,7 +5,7 @@ This repository contains the kernel source code for the Xiaomi Redmi Note 8 Pro 
 
 ## Features
 
-- **Automated Daily Sync:** GitHub Actions workflows run daily to sync the branches (`astera`, `nova`, `power`, `powerfork`) with their upstream repositories.
+- **Automated Daily Sync:** GitHub Actions workflows run daily to sync the branches (`astera`, `nova`, `power`) with their upstream repositories.
 - **Upstream Tracking:** Each branch is kept in sync with its corresponding upstream source, ensuring the latest commits are always available.
 - **Open Source Licensing:** This project is licensed under the GNU General Public License v3.0.
 
@@ -13,7 +13,7 @@ This repository contains the kernel source code for the Xiaomi Redmi Note 8 Pro 
 
 The GitHub Actions workflows in this repository perform the following tasks:
 1. **Upstream Sync:** Fetches the latest commits from the upstream repositories.
-2. **Branch Update:** Updates the local branches (`astera`, `nova`, `power`, `powerfork`) with the latest upstream changes.
+2. **Branch Update:** Updates the local branches (`astera`, `nova`, `power`) with the latest upstream changes.
 3. **Force Push:** Pushes the updated branches to this repository.
 
 ## Usage
