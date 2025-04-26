@@ -20,6 +20,14 @@ The GitHub Actions workflows in this repository perform the following tasks:
 
 Simply push your changes to the repository. The scheduled workflows will automatically sync the branches with their upstream sources. No manual intervention is required.
 
+## Kernels
+
+Astera Kernel By [MrErenK](https://github.com/xiaomi-begonia-dev/android_kernel_xiaomi_mt6785)
+
+Power Kernel By [Saikrishna1504](https://github.com/Saikrishna1504/kernel_xiaomi_mt6785)
+
+Nova Kernel By [Wahid7852](https://github.com/Wahid7852)
+
 ## License
 
 This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for more details.
